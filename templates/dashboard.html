@@ -18,6 +18,35 @@
 {% endfor %}
 {% endif %}
 
+{% if user.role in ['admin', 'finance', 'cashier'] %}
+<div class="card mb-4" style="border-left:4px solid #4361ee">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#1677ff,#4361ee);display:flex;align-items:center;justify-content:center">
+                    <i class="bi bi-alipay" style="font-size:1.5rem;color:#fff"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:.8rem">支付宝可用余额</div>
+                    <div id="alipay-balance" class="fw-bold" style="font-size:1.5rem;color:#1677ff">
+                        <span class="spinner-border spinner-border-sm"></span> 查询中...
+                    </div>
+                </div>
+                <div class="ms-4 d-none" id="alipay-detail">
+                    <span class="text-muted" style="font-size:.8rem">总额: <strong id="alipay-total">-</strong></span>
+                    <span class="text-muted ms-3" style="font-size:.8rem">冻结: <strong id="alipay-freeze">-</strong></span>
+                    <span class="text-muted ms-3" style="font-size:.8rem">配置: <strong id="alipay-config">-</strong></span>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" onclick="loadBalance()"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+                <a href="/alipay/bills" class="btn btn-sm btn-primary ms-1"><i class="bi bi-journal-text"></i> 账单</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row g-3 mb-4">
     <div class="col-md-4 col-sm-6">
         <div class="stat-card">
@@ -154,4 +183,31 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+{% if user.role in ['admin', 'finance', 'cashier'] %}
+<script>
+function loadBalance() {
+    document.getElementById('alipay-balance').innerHTML = '<span class="spinner-border spinner-border-sm"></span> 查询中...';
+    document.getElementById('alipay-detail').classList.add('d-none');
+    fetch('/api/alipay/balance')
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                document.getElementById('alipay-balance').textContent = '¥' + parseFloat(d.available_amount).toLocaleString('zh-CN', {minimumFractionDigits:2});
+                document.getElementById('alipay-total').textContent = '¥' + parseFloat(d.total_amount).toLocaleString('zh-CN', {minimumFractionDigits:2});
+                document.getElementById('alipay-freeze').textContent = '¥' + parseFloat(d.freeze_amount).toLocaleString('zh-CN', {minimumFractionDigits:2});
+                document.getElementById('alipay-config').textContent = d.config_name || '-';
+                document.getElementById('alipay-detail').classList.remove('d-none');
+            } else {
+                document.getElementById('alipay-balance').innerHTML = '<span class="text-danger" style="font-size:.9rem"><i class="bi bi-exclamation-triangle"></i> ' + (d.message||'查询失败') + '</span>';
+            }
+        })
+        .catch(e => {
+            document.getElementById('alipay-balance').innerHTML = '<span class="text-danger" style="font-size:.9rem"><i class="bi bi-exclamation-triangle"></i> 网络错误</span>';
+        });
+}
+loadBalance();
+</script>
+{% endif %}
 {% endblock %}

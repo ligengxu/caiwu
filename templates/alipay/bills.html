@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}支付宝账单 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item active">支付宝账单</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-alipay text-primary"></i> 支付宝账单查询</h4>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card" style="border-left:4px solid #1677ff">
+            <div class="card-body">
+                <div class="text-muted mb-1" style="font-size:.8rem">可用余额</div>
+                <div id="bal-available" class="fw-bold" style="font-size:1.75rem;color:#1677ff">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card" style="border-left:4px solid #52c41a">
+            <div class="card-body">
+                <div class="text-muted mb-1" style="font-size:.8rem">账户总额</div>
+                <div id="bal-total" class="fw-bold" style="font-size:1.75rem;color:#52c41a">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card" style="border-left:4px solid #faad14">
+            <div class="card-body">
+                <div class="text-muted mb-1" style="font-size:.8rem">冻结金额</div>
+                <div id="bal-freeze" class="fw-bold" style="font-size:1.75rem;color:#faad14">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if configs|length > 1 %}
+<div class="card mb-4">
+    <div class="card-body">
+        <label class="form-label fw-semibold">选择支付宝配置</label>
+        <select id="config-select" class="form-select" style="max-width:300px" onchange="loadBal()">
+            <option value="">默认（启用中）</option>
+            {% for c in configs %}
+            <option value="{{ c.id }}">{{ c.config_name }} ({{ c.app_id }})</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <span class="fw-semibold"><i class="bi bi-journal-text me-2"></i>最近打款记录</span>
+        <button class="btn btn-sm btn-outline-primary" onclick="loadBal()"><i class="bi bi-arrow-clockwise"></i> 刷新余额</button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="bill-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>类型</th>
+                        <th>收款方</th>
+                        <th>金额</th>
+                        <th>流水号</th>
+                        <th>操作人</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody id="bill-body">
+                    <tr><td colspan="7" class="text-center text-muted py-4">
+                        <span class="spinner-border spinner-border-sm"></span> 加载中...
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function loadBal() {
+    const cfgId = document.getElementById('config-select')?.value || '';
+    const url = '/api/alipay/balance' + (cfgId ? '?config_id='+cfgId : '');
+    ['bal-available','bal-total','bal-freeze'].forEach(id => {
+        document.getElementById(id).innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    });
+    fetch(url).then(r=>r.json()).then(d=>{
+        if(d.success){
+            document.getElementById('bal-available').textContent = '¥'+parseFloat(d.available_amount).toLocaleString('zh-CN',{minimumFractionDigits:2});
+            document.getElementById('bal-total').textContent = '¥'+parseFloat(d.total_amount).toLocaleString('zh-CN',{minimumFractionDigits:2});
+            document.getElementById('bal-freeze').textContent = '¥'+parseFloat(d.freeze_amount).toLocaleString('zh-CN',{minimumFractionDigits:2});
+        } else {
+            document.getElementById('bal-available').innerHTML = '<span class="text-danger" style="font-size:.9rem">'+d.message+'</span>';
+            document.getElementById('bal-total').textContent = '-';
+            document.getElementById('bal-freeze').textContent = '-';
+        }
+    }).catch(()=>{
+        document.getElementById('bal-available').innerHTML = '<span class="text-danger">网络错误</span>';
+    });
+}
+
+function loadBills() {
+    fetch('/api/alipay/recent_bills').then(r=>r.json()).then(d=>{
+        const tbody = document.getElementById('bill-body');
+        if(!d.bills || d.bills.length===0){
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">暂无打款记录</td></tr>';
+            return;
+        }
+        tbody.innerHTML = d.bills.map(b => `<tr>
+            <td>#${b.id}</td>
+            <td><span class="badge bg-${b.type_color}-subtle text-${b.type_color}">${b.type_label}</span></td>
+            <td>${b.payee}</td>
+            <td class="fw-semibold">¥${parseFloat(b.amount).toFixed(2)}</td>
+            <td><code style="font-size:.8rem">${b.trade_no||'-'}</code></td>
+            <td>${b.operator}</td>
+            <td class="text-muted">${b.time}</td>
+        </tr>`).join('');
+    }).catch(()=>{
+        document.getElementById('bill-body').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">加载失败</td></tr>';
+    });
+}
+
+loadBal();
+loadBills();
+</script>
+{% endblock %}

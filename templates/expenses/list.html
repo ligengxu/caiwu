@@ -87,9 +87,27 @@
                             </div>
                         </div>
                         {% elif user.role in ['admin', 'finance', 'cashier'] and e.status == 'approved' %}
-                        <form method="post" action="/expenses/{{ e.id }}/pay" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-cash"></i> 付款</button>
-                        </form>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#payModal{{ e.id }}"><i class="bi bi-alipay"></i> 支付宝打款</button>
+                        <div class="modal fade" id="payModal{{ e.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header"><h5 class="modal-title">支付宝打款确认</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                    <div class="modal-body">
+                                        <p>收款人: <strong>{{ e.user.alipay_real_name if e.user and e.user.alipay_real_name else '未设置' }}</strong></p>
+                                        <p>支付宝: <strong>{{ e.user.alipay_account if e.user and e.user.alipay_account else '未设置' }}</strong></p>
+                                        <p>金额: <strong class="text-danger">¥{{ "%.2f"|format(e.amount) }}</strong></p>
+                                        <div class="mb-3">
+                                            <label class="form-label">支付密码</label>
+                                            <input type="password" class="form-control" id="payPwd{{ e.id }}" placeholder="请输入支付密码" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <button type="button" class="btn btn-primary" onclick="doAlipayPay({{ e.id }}, this)"><i class="bi bi-alipay"></i> 确认打款</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {% else %}
                         <span class="text-muted">-</span>
                         {% endif %}
@@ -114,4 +132,33 @@
     <li class="page-item {% if page >= total_pages %}disabled{% endif %}"><a class="page-link" href="?page={{ page+1 }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if keyword %}&keyword={{ keyword }}{% endif %}">»</a></li>
 </ul></nav>
 {% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+function doAlipayPay(expenseId, btn) {
+    const pwd = document.getElementById('payPwd'+expenseId).value;
+    if(!pwd){ alert('请输入支付密码'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 打款中...';
+    const fd = new FormData();
+    fd.append('password', pwd);
+    fetch('/expenses/'+expenseId+'/alipay_pay', {method:'POST', body:fd})
+        .then(r=>r.json())
+        .then(d=>{
+            if(d.success){
+                alert('打款成功！流水号: '+d.trade_no);
+                location.reload();
+            } else {
+                alert('打款失败: '+d.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-alipay"></i> 确认打款';
+            }
+        })
+        .catch(()=>{
+            alert('网络错误');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-alipay"></i> 确认打款';
+        });
+}
+</script>
 {% endblock %}
