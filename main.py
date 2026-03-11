@@ -15,6 +15,7 @@ from routers import auth_router, dashboard_router, expense_router, user_router
 from routers import supplier_router, salary_router, admin_payment_router
 from routers import advance_router, express_router, shipment_router
 from routers import system_router, audit_router, warehouse_router, alipay_router
+from routers import alipay_config_router
 
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
@@ -38,6 +39,7 @@ app.include_router(system_router.router)
 app.include_router(audit_router.router)
 app.include_router(warehouse_router.router)
 app.include_router(alipay_router.router)
+app.include_router(alipay_config_router.router)
 
 
 @app.get("/")

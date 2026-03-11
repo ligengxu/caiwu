@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑' if is_edit else '新增' }}支付宝配置 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/system/alipay">支付宝配置</a></li>
+<li class="breadcrumb-item active">{{ '编辑' if is_edit else '新增' }}配置</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-{% if is_edit %}pencil{% else %}plus-circle{% endif %} text-primary"></i>
+        {{ '编辑' if is_edit else '新增' }}支付宝配置
+    </h4>
+    <a href="/system/alipay" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+</div>
+
+<form method="post" action="/system/alipay/{% if is_edit %}{{ config.id }}/edit{% else %}add{% endif %}" enctype="multipart/form-data">
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header py-3"><i class="bi bi-app-indicator me-2"></i>基本信息</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">配置名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="config_name" class="form-control" required
+                               value="{{ config.config_name if config else '' }}" placeholder="如：主账号、测试账号">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">AppID <span class="text-danger">*</span></label>
+                        <input type="text" name="app_id" class="form-control" required
+                               value="{{ config.app_id if config else '' }}" placeholder="支付宝应用的AppID">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            应用私钥 {% if not is_edit %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <textarea name="private_key" class="form-control" rows="4"
+                                  {% if not is_edit %}required{% endif %}
+                                  placeholder="{% if is_edit %}留空不修改，填写则覆盖原私钥{% else %}粘贴RSA2私钥内容（不含BEGIN/END标记）{% endif %}"
+                                  style="font-family:monospace;font-size:.8rem"></textarea>
+                        {% if is_edit %}
+                        <div class="form-text text-warning"><i class="bi bi-shield-lock"></i> 私钥已加密存储，留空表示不修改</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">网关地址</label>
+                        <input type="text" name="server_url" class="form-control"
+                               value="{{ config.server_url if config else 'https://openapi.alipay.com/gateway.do' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">备注</label>
+                        <input type="text" name="remark" class="form-control"
+                               value="{{ config.remark if config else '' }}" placeholder="选填，方便区分不同配置">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header py-3"><i class="bi bi-file-earmark-lock me-2"></i>证书配置</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">应用公钥证书 (.crt)</label>
+                        {% if is_edit and config.app_cert_path %}
+                        <div class="mb-2"><span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> 已上传: {{ config.app_cert_path }}</span></div>
+                        {% endif %}
+                        <input type="file" name="app_cert_file" class="form-control" accept=".crt,.pem,.cer">
+                        <div class="form-text">appCertPublicKey_xxxx.crt{% if is_edit %}（重新上传将覆盖）{% endif %}</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">支付宝公钥证书 (.crt)</label>
+                        {% if is_edit and config.alipay_public_cert_path %}
+                        <div class="mb-2"><span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> 已上传: {{ config.alipay_public_cert_path }}</span></div>
+                        {% endif %}
+                        <input type="file" name="alipay_cert_file" class="form-control" accept=".crt,.pem,.cer">
+                        <div class="form-text">alipayCertPublicKey_RSA2.crt{% if is_edit %}（重新上传将覆盖）{% endif %}</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">支付宝根证书 (.crt)</label>
+                        {% if is_edit and config.root_cert_path %}
+                        <div class="mb-2"><span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> 已上传: {{ config.root_cert_path }}</span></div>
+                        {% endif %}
+                        <input type="file" name="root_cert_file" class="form-control" accept=".crt,.pem,.cer">
+                        <div class="form-text">alipayRootCert.crt{% if is_edit %}（重新上传将覆盖）{% endif %}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">根证书序列号 (可选)</label>
+                        <input type="text" name="root_cert_sn" class="form-control" style="font-family:monospace;font-size:.85rem"
+                               value="{{ config.root_cert_sn if config and config.root_cert_sn else '' }}"
+                               placeholder="留空则自动从根证书文件计算">
+                        <div class="form-text">如果自动计算不正确，可手动填写</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card" style="position:sticky;top:80px">
+            <div class="card-header py-3"><i class="bi bi-lightning me-2"></i>操作</div>
+            <div class="card-body">
+                <button type="submit" class="btn btn-primary w-100 mb-2">
+                    <i class="bi bi-check-lg me-1"></i>{{ '保存修改' if is_edit else '创建配置' }}
+                </button>
+                <a href="/system/alipay" class="btn btn-outline-secondary w-100">取消</a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header py-3"><i class="bi bi-question-circle me-2"></i>帮助</div>
+            <div class="card-body" style="font-size:.85rem">
+                <p class="mb-2"><strong>获取配置信息：</strong></p>
+                <ol class="mb-3 ps-3">
+                    <li>登录<a href="https://open.alipay.com" target="_blank">支付宝开放平台</a></li>
+                    <li>进入应用详情页</li>
+                    <li>复制 AppID</li>
+                    <li>在"开发设置"中下载证书</li>
+                    <li>复制应用私钥</li>
+                </ol>
+                <p class="mb-1"><strong>需要签约的产品：</strong></p>
+                <ul class="mb-0 ps-3">
+                    <li>单笔转账到支付宝账户</li>
+                    <li>查询账户余额</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}

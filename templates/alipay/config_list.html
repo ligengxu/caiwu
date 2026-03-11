@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}支付宝配置 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item active">支付宝配置</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-gear text-primary"></i> 支付宝配置管理</h4>
+    <a href="/system/alipay/add" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>新增配置</a>
+</div>
+
+<div class="row g-3">
+{% for c in configs %}
+<div class="col-12">
+    <div class="card {% if c.is_active %}border-primary{% endif %}" style="{% if c.is_active %}border-width:2px{% endif %}">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:52px;height:52px;border-radius:14px;background:{% if c.is_active %}linear-gradient(135deg,#1677ff,#4361ee){% else %}#f0f2f5{% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="bi bi-alipay" style="font-size:1.5rem;color:{% if c.is_active %}#fff{% else %}#999{% endif %}"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <h5 class="mb-0 fw-bold">{{ c.config_name }}</h5>
+                                {% if c.is_active %}
+                                <span class="badge bg-primary"><i class="bi bi-check-circle"></i> 当前使用</span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">未激活</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-muted mt-1" style="font-size:.85rem">
+                                AppID: <code>{{ c.app_id }}</code>
+                            </div>
+                            {% if c.remark %}
+                            <div class="text-muted" style="font-size:.8rem">{{ c.remark }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div style="font-size:.8rem" class="text-muted">
+                        <div><i class="bi bi-file-earmark-lock me-1"></i>应用证书: {{ '已配置' if c.app_cert_path else '未配置' }}</div>
+                        <div><i class="bi bi-file-earmark-check me-1"></i>支付宝公钥证书: {{ '已配置' if c.alipay_public_cert_path else '未配置' }}</div>
+                        <div><i class="bi bi-file-earmark-medical me-1"></i>根证书: {{ '已配置' if c.root_cert_path else '未配置' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div id="test-result-{{ c.id }}" style="font-size:.85rem"></div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <div class="d-flex gap-1 justify-content-end flex-wrap">
+                        <button class="btn btn-sm btn-outline-info" onclick="testConfig({{ c.id }})" title="测试连接">
+                            <i class="bi bi-lightning"></i> 测试
+                        </button>
+                        {% if not c.is_active %}
+                        <form method="post" action="/system/alipay/activate/{{ c.id }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('确认切换到此配置？')">
+                                <i class="bi bi-check2-circle"></i> 激活
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="/system/alipay/{{ c.id }}/edit" class="btn btn-sm btn-outline-secondary" title="编辑">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% if not c.is_active %}
+                        <form method="post" action="/system/alipay/{{ c.id }}/delete" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确认删除此配置？此操作不可恢复！')" title="删除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% if not configs %}
+<div class="col-12">
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size:3rem"></i>
+            <p class="text-muted mt-2">暂无支付宝配置，请点击右上角"新增配置"</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+</div>
+
+<div class="card mt-4">
+    <div class="card-header py-3"><i class="bi bi-info-circle me-2"></i>使用说明</div>
+    <div class="card-body" style="font-size:.875rem">
+        <ul class="mb-0">
+            <li>可以配置多套支付宝应用，点击 <strong>"激活"</strong> 切换当前使用的配置</li>
+            <li>同一时间只有一套配置处于激活状态，所有打款和余额查询使用激活的配置</li>
+            <li>点击 <strong>"测试"</strong> 可验证配置是否正确（会查询余额）</li>
+            <li>证书文件需要从<a href="https://open.alipay.com" target="_blank">支付宝开放平台</a>下载</li>
+            <li>私钥请妥善保管，编辑时留空表示不修改</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function testConfig(id) {
+    const el = document.getElementById('test-result-'+id);
+    el.innerHTML = '<span class="text-muted"><span class="spinner-border spinner-border-sm"></span> 测试中...</span>';
+    fetch('/system/alipay/test/'+id, {method:'POST'})
+        .then(r=>r.json())
+        .then(d=>{
+            if(d.success){
+                el.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> 连接成功<br>余额: ¥'+parseFloat(d.available_amount).toLocaleString('zh-CN',{minimumFractionDigits:2})+'</span>';
+            } else {
+                el.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> 失败: '+(d.message||'未知错误')+'</span>';
+            }
+        })
+        .catch(()=>{
+            el.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> 网络错误</span>';
+        });
+}
+</script>
+{% endblock %}
