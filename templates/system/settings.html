@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}系统设置 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/dashboard">系统管理</a></li>
+<li class="breadcrumb-item active">系统设置</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">系统设置</h4>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>此页面仅管理员可访问。
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for setting in settings %}
+                <tr>
+                    <td><code>{{ setting.key }}</code></td>
+                    <td>{{ setting.value or '-' }}</td>
+                    <td class="text-muted">{{ setting.description or '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% if not settings %}
+                <tr><td colspan="3" class="text-center text-muted py-5">暂无数据</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

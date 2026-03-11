@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}个人设置 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item active">个人设置</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">个人设置</h4>
+</div>
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header py-3">
+                <i class="bi bi-person me-2"></i>当前用户信息
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:120px">用户名</td><td>{{ user.username }}</td></tr>
+                    <tr><td class="text-muted">姓名</td><td>{{ user.real_name or '-' }}</td></tr>
+                    <tr><td class="text-muted">角色</td><td>
+                        {% if user.role == 'admin' %}管理员{% elif user.role == 'finance' %}财务{% elif user.role == 'cashier' %}出纳{% else %}员工{% endif %}
+                    </td></tr>
+                    <tr><td class="text-muted">部门</td><td>{{ user.department.name if user.department else '无' }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header py-3">
+                <i class="bi bi-pencil me-2"></i>修改个人信息
+            </div>
+            <div class="card-body">
+                <form method="post" action="/users/profile">
+                    <div class="mb-3">
+                        <label class="form-label">手机</label>
+                        <input type="text" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="手机号码">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">支付宝账号</label>
+                        <input type="text" name="alipay_account" class="form-control" value="{{ user.alipay_account or '' }}" placeholder="支付宝账号">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">支付宝实名</label>
+                        <input type="text" name="alipay_real_name" class="form-control" value="{{ user.alipay_real_name or '' }}" placeholder="支付宝实名认证姓名">
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存信息</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header py-3">
+        <i class="bi bi-key me-2"></i>修改密码
+    </div>
+    <div class="card-body">
+        <form method="post" action="/users/profile" id="passwordForm">
+            <input type="hidden" name="action" value="change_password">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">原密码 <span class="text-danger">*</span></label>
+                    <input type="password" name="old_password" class="form-control" placeholder="请输入原密码">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">新密码 <span class="text-danger">*</span></label>
+                    <input type="password" name="new_password" class="form-control" placeholder="请输入新密码">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-key me-1"></i>修改密码</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

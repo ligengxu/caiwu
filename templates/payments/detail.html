@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}付款详情 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/payments">付款管理</a></li>
+<li class="breadcrumb-item active">付款详情 #{{ payment.id }}</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">付款详情 #{{ payment.id }}</h4>
+    <a href="/payments" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header py-3"><i class="bi bi-credit-card me-2"></i>基本信息</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label text-muted small">收款方</label>
+                <p class="mb-0 fw-semibold">{{ payment.payee_name }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">收款账号</label>
+                <p class="mb-0">{{ payment.payee_account }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">应付金额</label>
+                <p class="mb-0 fw-semibold text-primary">¥{{ "%.2f"|format(payment.amount) }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">已付金额</label>
+                <p class="mb-0 fw-semibold">¥{{ "%.2f"|format(payment.paid_amount or 0) }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">供应商</label>
+                <p class="mb-0">{{ payment.supplier.name if payment.supplier else '-' }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">创建人</label>
+                <p class="mb-0">{{ payment.creator.real_name if payment.creator else '-' }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">创建时间</label>
+                <p class="mb-0">{{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else '-' }}</p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">状态</label>
+                <p class="mb-0">
+                    {% if payment.status == 'pending_review' %}<span class="badge bg-warning-subtle text-warning badge-status">待审核</span>
+                    {% elif payment.status == 'approved' %}<span class="badge bg-info-subtle text-info badge-status">已审批</span>
+                    {% elif payment.status == 'paid' %}<span class="badge bg-success-subtle text-success badge-status">已付款</span>
+                    {% elif payment.status == 'rejected' %}<span class="badge bg-danger-subtle text-danger badge-status">已拒绝</span>
+                    {% elif payment.status == 'partial_paid' %}<span class="badge bg-primary-subtle text-primary badge-status">部分付款</span>
+                    {% else %}<span class="badge bg-secondary badge-status">{{ payment.status }}</span>{% endif %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">付款时间类型</label>
+                <p class="mb-0">{% if payment.payment_time_type == 'immediate' %}立即付款{% elif payment.payment_time_type == 'scheduled' %}计划付款{% elif payment.payment_time_type == 'long_term' %}长期{% else %}{{ payment.payment_time_type }}{% endif %}</p>
+            </div>
+            {% if payment.scheduled_payment_date %}
+            <div class="col-md-6">
+                <label class="form-label text-muted small">计划付款日期</label>
+                <p class="mb-0">{{ payment.scheduled_payment_date.strftime('%Y-%m-%d') }}</p>
+            </div>
+            {% endif %}
+            <div class="col-12">
+                <label class="form-label text-muted small">付款原因</label>
+                <p class="mb-0">{{ payment.reason or '-' }}</p>
+            </div>
+            {% if payment.voucher_path %}
+            <div class="col-12">
+                <label class="form-label text-muted small">凭证</label>
+                <p class="mb-0"><a href="/{{ payment.voucher_path }}" target="_blank" class="text-primary"><i class="bi bi-file-earmark"></i> 查看</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if payment.records %}
+<div class="card mb-4">
+    <div class="card-header py-3"><i class="bi bi-list-ul me-2"></i>付款记录</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>金额</th>
+                        <th>方式</th>
+                        <th>交易号</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for r in payment.records %}
+                <tr>
+                    <td class="fw-semibold">¥{{ "%.2f"|format(r.amount) }}</td>
+                    <td>{% if r.payment_method == 'alipay' %}支付宝{% elif r.payment_method == 'cash' %}现金{% elif r.payment_method == 'bank' %}银行转账{% elif r.payment_method == 'corporate' %}对公{% else %}{{ r.payment_method }}{% endif %}</td>
+                    <td>{{ r.trade_no or '-' }}</td>
+                    <td class="text-muted">{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <h6 class="mb-3">操作</h6>
+        {% if user.role == 'admin' and payment.status == 'pending_review' %}
+        <form method="post" action="/payments/{{ payment.id }}/review" class="d-inline">
+            <input type="hidden" name="action" value="approve">
+            <input type="hidden" name="comment" value="">
+            <button type="submit" class="btn btn-success me-2"><i class="bi bi-check-lg me-1"></i>审批通过</button>
+        </form>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectDetailModal"><i class="bi bi-x-lg me-1"></i>拒绝</button>
+        <div class="modal fade" id="rejectDetailModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/payments/{{ payment.id }}/review">
+                        <input type="hidden" name="action" value="reject">
+                        <div class="modal-header"><h5 class="modal-title">拒绝付款</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body"><label class="form-label">备注</label><input type="text" name="comment" class="form-control" placeholder="选填"></div>
+                        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="submit" class="btn btn-danger">确认拒绝</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% elif user.role in ['admin', 'finance', 'cashier'] and payment.status in ['approved', 'partial_paid'] %}
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#payDetailModal"><i class="bi bi-cash me-1"></i>付款</button>
+        <div class="modal fade" id="payDetailModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/payments/{{ payment.id }}/pay">
+                        <div class="modal-header"><h5 class="modal-title">确认付款</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body">
+                            <p class="mb-2">应付金额：¥{{ "%.2f"|format(payment.amount) }}，已付：¥{{ "%.2f"|format(payment.paid_amount or 0) }}</p>
+                            <div class="mb-2"><label class="form-label">付款金额</label><input type="number" name="pay_amount" class="form-control" step="0.01" min="0" required placeholder="0.00"></div>
+                            <div class="mb-2"><label class="form-label">付款方式</label><select name="payment_method" class="form-select"><option value="alipay">支付宝</option><option value="cash">现金</option><option value="bank">银行转账</option><option value="corporate">对公</option></select></div>
+                            <div class="mb-2"><label class="form-label">交易号</label><input type="text" name="trade_no" class="form-control" placeholder="选填"></div>
+                            <div><label class="form-label">备注</label><input type="text" name="remark" class="form-control" placeholder="选填"></div>
+                        </div>
+                        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="submit" class="btn btn-primary">确认付款</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <span class="text-muted">当前状态无可执行操作</span>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

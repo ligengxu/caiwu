@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}快递公司 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/express">快递管理</a></li>
+<li class="breadcrumb-item active">快递公司</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">快递公司</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>公司名称</th>
+                        <th>联系人</th>
+                        <th>支付宝账号</th>
+                        <th>支付宝姓名</th>
+                        <th>单价</th>
+                        <th>状态</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for c in companies %}
+                <tr>
+                    <td>#{{ c.id }}</td>
+                    <td>{{ c.company_name }}</td>
+                    <td>{{ c.contact_person }}</td>
+                    <td>{{ c.alipay_account }}</td>
+                    <td>{{ c.alipay_real_name }}</td>
+                    <td>¥{{ "%.2f"|format(c.unit_price) }}</td>
+                    <td>
+                        {% if c.status == 'active' %}<span class="badge bg-success-subtle text-success badge-status">启用</span>
+                        {% else %}<span class="badge bg-danger-subtle text-danger badge-status">停用</span>{% endif %}
+                    </td>
+                    <td>{{ c.remark or '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% if not companies %}
+                <tr><td colspan="8" class="text-center text-muted py-5">暂无数据</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

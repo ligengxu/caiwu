@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}新增用户 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/users">用户管理</a></li>
+<li class="breadcrumb-item active">新增用户</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">新增用户</h4>
+    <a href="/users" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/users/add">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">用户名 <span class="text-danger">*</span></label>
+                    <input type="text" name="username" class="form-control" required placeholder="登录用户名">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">密码 <span class="text-danger">*</span></label>
+                    <input type="password" name="password" class="form-control" required placeholder="登录密码">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">姓名</label>
+                    <input type="text" name="real_name" class="form-control" placeholder="真实姓名">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">角色 <span class="text-danger">*</span></label>
+                    <select name="role" class="form-select" required>
+                        <option value="employee">员工</option>
+                        <option value="cashier">出纳</option>
+                        <option value="finance">财务</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">手机</label>
+                    <input type="text" name="phone" class="form-control" placeholder="手机号码">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">部门</label>
+                    <select name="department_id" class="form-select">
+                        <option value="">请选择部门</option>
+                        {% for d in departments %}
+                        <option value="{{ d.id }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">支付宝账号</label>
+                    <input type="text" name="alipay_account" class="form-control" placeholder="支付宝账号">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">支付宝实名</label>
+                    <input type="text" name="alipay_real_name" class="form-control" placeholder="支付宝实名认证姓名">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/users" class="btn btn-outline-secondary ms-2">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}编辑供应商 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/suppliers">供应商管理</a></li>
+<li class="breadcrumb-item active">编辑供应商</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">编辑供应商</h4>
+    <a href="/suppliers" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/suppliers/{{ supplier.id }}/edit">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{{ supplier.name }}" required placeholder="供应商名称">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">支付宝账号</label>
+                    <input type="text" name="alipay_account" class="form-control" value="{{ supplier.alipay_account or '' }}" placeholder="支付宝账号">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">支付宝姓名</label>
+                    <input type="text" name="alipay_real_name" class="form-control" value="{{ supplier.alipay_real_name or '' }}" placeholder="支付宝实名认证姓名">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">状态</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {% if supplier.status == 1 %}selected{% endif %}>启用</option>
+                        <option value="0" {% if supplier.status == 0 %}selected{% endif %}>禁用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/suppliers" class="btn btn-outline-secondary ms-2">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

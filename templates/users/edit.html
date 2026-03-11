@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}编辑用户 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/users">用户管理</a></li>
+<li class="breadcrumb-item active">编辑用户</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">编辑用户</h4>
+    <a href="/users" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回列表</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/users/{{ target.id }}/edit">
+            <div class="row g-3">
+                <div class="col-12">
+                    <p class="text-muted mb-0"><small>用户名：{{ target.username }}</small></p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">姓名</label>
+                    <input type="text" name="real_name" class="form-control" value="{{ target.real_name or '' }}" placeholder="真实姓名">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">角色</label>
+                    <select name="role" class="form-select">
+                        <option value="employee" {% if target.role == 'employee' %}selected{% endif %}>员工</option>
+                        <option value="cashier" {% if target.role == 'cashier' %}selected{% endif %}>出纳</option>
+                        <option value="finance" {% if target.role == 'finance' %}selected{% endif %}>财务</option>
+                        <option value="admin" {% if target.role == 'admin' %}selected{% endif %}>管理员</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">手机</label>
+                    <input type="text" name="phone" class="form-control" value="{{ target.phone or '' }}" placeholder="手机号码">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">部门</label>
+                    <select name="department_id" class="form-select">
+                        <option value="">请选择部门</option>
+                        {% for d in departments %}
+                        <option value="{{ d.id }}" {% if target.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">支付宝账号</label>
+                    <input type="text" name="alipay_account" class="form-control" value="{{ target.alipay_account or '' }}" placeholder="支付宝账号">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">支付宝实名</label>
+                    <input type="text" name="alipay_real_name" class="form-control" value="{{ target.alipay_real_name or '' }}" placeholder="支付宝实名认证姓名">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">密码</label>
+                    <input type="password" name="password" class="form-control" placeholder="留空不修改">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">状态</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {% if target.status == 1 %}selected{% endif %}>启用</option>
+                        <option value="0" {% if target.status == 0 %}selected{% endif %}>禁用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                <a href="/users" class="btn btn-outline-secondary ms-2">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

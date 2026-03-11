@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}新增付款 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/payments">付款管理</a></li>
+<li class="breadcrumb-item active">新增付款</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">新增付款</h4>
+    <a href="/payments" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/payments/add" enctype="multipart/form-data">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">供应商（选填）</label>
+                    <select name="supplier_id" class="form-select">
+                        <option value="">请选择</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">收款账号 <span class="text-danger">*</span></label>
+                    <input type="text" name="payee_account" class="form-control" required placeholder="支付宝/银行卡号">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">收款方 <span class="text-danger">*</span></label>
+                    <input type="text" name="payee_name" class="form-control" required placeholder="收款人姓名">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">金额 <span class="text-danger">*</span></label>
+                    <input type="number" name="amount" class="form-control" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">付款原因 <span class="text-danger">*</span></label>
+                    <textarea name="reason" class="form-control" rows="4" required placeholder="付款说明"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">付款时间类型</label>
+                    <select name="payment_time_type" id="paymentTimeType" class="form-select">
+                        <option value="immediate">立即付款</option>
+                        <option value="long_term">长期</option>
+                        <option value="scheduled">计划付款</option>
+                    </select>
+                </div>
+                <div class="col-md-6" id="scheduledDateField" style="display:none">
+                    <label class="form-label">计划付款日期</label>
+                    <input type="date" name="scheduled_payment_date" id="scheduledPaymentDate" class="form-control">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">凭证（选填）</label>
+                    <input type="file" name="voucher" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>提交</button>
+                    <a href="/payments" class="btn btn-outline-secondary ms-2">取消</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('paymentTimeType').addEventListener('change', function() {
+    var field = document.getElementById('scheduledDateField');
+    field.style.display = this.value === 'scheduled' ? 'block' : 'none';
+    if (this.value !== 'scheduled') document.getElementById('scheduledPaymentDate').value = '';
+});
+document.getElementById('paymentTimeType').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

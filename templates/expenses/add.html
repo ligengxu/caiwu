@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}新增报销 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/expenses">报销管理</a></li>
+<li class="breadcrumb-item active">新增报销</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">新增报销</h4>
+    <a href="/expenses" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/expenses/add" enctype="multipart/form-data">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">类型 <span class="text-danger">*</span></label>
+                    <select name="type" id="expenseType" class="form-select" required>
+                        <option value="employee">员工报销</option>
+                        <option value="supplier">供应商报销</option>
+                    </select>
+                </div>
+                <div class="col-md-6" id="supplierField" style="display:none">
+                    <label class="form-label">供应商</label>
+                    <select name="supplier_id" id="supplierId" class="form-select">
+                        <option value="">请选择</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">金额 <span class="text-danger">*</span></label>
+                    <input type="number" name="amount" class="form-control" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">描述</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="报销说明"></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">附件（可多选）</label>
+                    <input type="file" name="files" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>提交</button>
+                    <a href="/expenses" class="btn btn-outline-secondary ms-2">取消</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('expenseType').addEventListener('change', function() {
+    var supplierField = document.getElementById('supplierField');
+    supplierField.style.display = this.value === 'supplier' ? 'block' : 'none';
+    if (this.value !== 'supplier') document.getElementById('supplierId').value = '';
+});
+document.getElementById('expenseType').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

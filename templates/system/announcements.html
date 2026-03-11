@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}公告管理 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/dashboard">系统管理</a></li>
+<li class="breadcrumb-item active">公告管理</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">公告管理</h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="post" action="/system/announcements/add">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">标题 <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control" placeholder="公告标题" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">类型</label>
+                    <select name="type" class="form-select">
+                        <option value="info">info</option>
+                        <option value="warning">warning</option>
+                        <option value="danger">danger</option>
+                        <option value="success">success</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">内容</label>
+                    <textarea name="content" class="form-control" rows="4" placeholder="公告内容"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>添加公告</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>标题</th>
+                        <th>内容</th>
+                        <th>类型</th>
+                        <th>状态</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for a in announcements %}
+                <tr>
+                    <td>{{ a.title or '-' }}</td>
+                    <td class="text-muted" style="max-width:200px">{{ (a.content or '')[:50] }}{% if (a.content or '')|length > 50 %}...{% endif %}</td>
+                    <td>
+                        {% if a.type == 'info' %}<span class="badge bg-info-subtle text-info badge-status">info</span>
+                        {% elif a.type == 'warning' %}<span class="badge bg-warning-subtle text-warning badge-status">warning</span>
+                        {% elif a.type == 'danger' %}<span class="badge bg-danger-subtle text-danger badge-status">danger</span>
+                        {% elif a.type == 'success' %}<span class="badge bg-success-subtle text-success badge-status">success</span>
+                        {% else %}<span class="badge bg-secondary badge-status">{{ a.type or '-' }}</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if a.active %}<span class="badge bg-success-subtle text-success badge-status">启用</span>
+                        {% else %}<span class="badge bg-secondary badge-status">停用</span>{% endif %}
+                    </td>
+                    <td class="text-muted">{{ a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% if not announcements %}
+                <tr><td colspan="5" class="text-center text-muted py-5">暂无数据</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

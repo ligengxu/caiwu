@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}仪表盘 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">仪表盘</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">仪表盘</h4>
+    <span class="text-muted" style="font-size:.875rem"><i class="bi bi-calendar3"></i> {{ now().strftime('%Y年%m月%d日') if now is defined else '' }}</span>
+</div>
+
+{% if announcements %}
+{% for ann in announcements %}
+<div class="alert alert-{{ ann.type }} alert-dismissible fade show mb-3" role="alert">
+    <strong><i class="bi bi-megaphone"></i> {{ ann.title }}</strong> — {{ ann.content }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">待审批报销</div>
+                    <div class="stat-value">{{ pending_expenses }}</div>
+                </div>
+                <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-receipt"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">待审批付款</div>
+                    <div class="stat-value">{{ pending_payments }}</div>
+                </div>
+                <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-credit-card"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">待审批工资</div>
+                    <div class="stat-value">{{ pending_salaries }}</div>
+                </div>
+                <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-wallet2"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">本月报销总额</div>
+                    <div class="stat-value">¥{{ "%.2f"|format(month_expense_total) }}</div>
+                </div>
+                <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-graph-up"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">本月付款总额</div>
+                    <div class="stat-value">¥{{ "%.2f"|format(month_payment_total) }}</div>
+                </div>
+                <div class="stat-icon bg-danger-subtle text-danger"><i class="bi bi-cash"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">在职员工</div>
+                    <div class="stat-value">{{ user_count }}</div>
+                </div>
+                <div class="stat-icon bg-secondary-subtle text-secondary"><i class="bi bi-people"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center py-3">
+                <span><i class="bi bi-receipt me-2"></i>最近报销</span>
+                <a href="/expenses" class="btn btn-sm btn-outline-primary">查看全部</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>ID</th><th>金额</th><th>状态</th><th>时间</th></tr></thead>
+                        <tbody>
+                        {% for e in recent_expenses %}
+                        <tr>
+                            <td>#{{ e.id }}</td>
+                            <td class="fw-semibold">¥{{ "%.2f"|format(e.amount) }}</td>
+                            <td>
+                                {% if e.status == 'pending' %}<span class="badge bg-warning-subtle text-warning badge-status">待审批</span>
+                                {% elif e.status == 'approved' %}<span class="badge bg-info-subtle text-info badge-status">已审批</span>
+                                {% elif e.status == 'paid' %}<span class="badge bg-success-subtle text-success badge-status">已付款</span>
+                                {% elif e.status == 'rejected' %}<span class="badge bg-danger-subtle text-danger badge-status">已拒绝</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted">{{ e.created_at.strftime('%m-%d %H:%M') if e.created_at else '' }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not recent_expenses %}<tr><td colspan="4" class="text-center text-muted py-4">暂无数据</td></tr>{% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center py-3">
+                <span><i class="bi bi-credit-card me-2"></i>最近付款</span>
+                <a href="/payments" class="btn btn-sm btn-outline-primary">查看全部</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>ID</th><th>收款方</th><th>金额</th><th>状态</th></tr></thead>
+                        <tbody>
+                        {% for p in recent_payments %}
+                        <tr>
+                            <td>#{{ p.id }}</td>
+                            <td>{{ p.payee_name }}</td>
+                            <td class="fw-semibold">¥{{ "%.2f"|format(p.amount) }}</td>
+                            <td>
+                                {% if p.status == 'pending_review' %}<span class="badge bg-warning-subtle text-warning badge-status">待审核</span>
+                                {% elif p.status == 'approved' %}<span class="badge bg-info-subtle text-info badge-status">已审核</span>
+                                {% elif p.status == 'paid' %}<span class="badge bg-success-subtle text-success badge-status">已付款</span>
+                                {% elif p.status == 'rejected' %}<span class="badge bg-danger-subtle text-danger badge-status">已拒绝</span>
+                                {% elif p.status == 'partial_paid' %}<span class="badge bg-primary-subtle text-primary badge-status">部分付款</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not recent_payments %}<tr><td colspan="4" class="text-center text-muted py-4">暂无数据</td></tr>{% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

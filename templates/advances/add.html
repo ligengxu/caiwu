@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}申请预支 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/advances">预支管理</a></li>
+<li class="breadcrumb-item active">申请预支</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">申请预支</h4>
+    <a href="/advances" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/advances/add">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">金额 <span class="text-danger">*</span></label>
+                    <input type="number" name="amount" class="form-control" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">还款日期 <span class="text-danger">*</span></label>
+                    <input type="date" name="repayment_date" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">备注</label>
+                    <textarea name="comment" class="form-control" rows="4" placeholder="预支说明"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>提交</button>
+                    <a href="/advances" class="btn btn-outline-secondary ms-2">取消</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}报销统计 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item"><a href="/expenses">报销管理</a></li>
+<li class="breadcrumb-item active">报销统计</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">报销统计</h4>
+    <a href="/expenses" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回</a>
+</div>
+
+<div class="row g-3 mb-4">
+    {% for s in status_stats %}
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">
+                        {% if s.status == 'pending' %}待审批
+                        {% elif s.status == 'approved' %}已审批
+                        {% elif s.status == 'paid' %}已付款
+                        {% elif s.status == 'rejected' %}已拒绝
+                        {% else %}{{ s.status }}{% endif %}
+                    </div>
+                    <div class="stat-value">{{ s.count }} 笔 / ¥{{ "%.2f"|format(s.total or 0) }}</div>
+                </div>
+                <div class="stat-icon
+                    {% if s.status == 'pending' %}bg-warning-subtle text-warning
+                    {% elif s.status == 'approved' %}bg-info-subtle text-info
+                    {% elif s.status == 'paid' %}bg-success-subtle text-success
+                    {% elif s.status == 'rejected' %}bg-danger-subtle text-danger
+                    {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                    <i class="bi bi-receipt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% if not status_stats %}
+    <div class="col-12"><p class="text-muted">暂无状态统计</p></div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header py-3"><i class="bi bi-calendar3 me-2"></i>月度统计（本年）</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>月份</th>
+                        <th>笔数</th>
+                        <th>总金额</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for m in monthly_stats %}
+                <tr>
+                    <td>{{ m.month }}月</td>
+                    <td>{{ m.count }}</td>
+                    <td class="fw-semibold">¥{{ "%.2f"|format(m.total or 0) }}</td>
+                </tr>
+                {% endfor %}
+                {% if not monthly_stats %}
+                <tr><td colspan="3" class="text-center text-muted py-4">暂无月度数据</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

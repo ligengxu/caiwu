@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}快递管理 - 财务管理系统{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">首页</a></li>
+<li class="breadcrumb-item active">快递管理</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">快递管理</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>快递公司</th>
+                        <th>数量</th>
+                        <th>单价</th>
+                        <th>总金额</th>
+                        <th>收款账号</th>
+                        <th>状态</th>
+                        <th>创建人</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td>#{{ o.id }}</td>
+                    <td>{{ o.company_name }}</td>
+                    <td>{{ o.quantity }}</td>
+                    <td>¥{{ "%.2f"|format(o.unit_price) }}</td>
+                    <td class="fw-semibold">¥{{ "%.2f"|format(o.total_amount) }}</td>
+                    <td>{{ o.alipay_account }}</td>
+                    <td>
+                        {% if o.status == 'pending' %}<span class="badge bg-warning-subtle text-warning badge-status">待付款</span>
+                        {% elif o.status == 'paid' %}<span class="badge bg-success-subtle text-success badge-status">已付款</span>
+                        {% elif o.status == 'failed' %}<span class="badge bg-danger-subtle text-danger badge-status">失败</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ o.creator.real_name if o.creator else '' }}</td>
+                    <td class="text-muted">{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% if not orders %}
+                <tr><td colspan="9" class="text-center text-muted py-5">暂无数据</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if total_pages > 1 %}
+<nav class="mt-3"><ul class="pagination justify-content-center">
+    <li class="page-item {% if page <= 1 %}disabled{% endif %}"><a class="page-link" href="?page={{ page-1 }}">«</a></li>
+    {% for p in range(1, total_pages+1) %}{% if p <= 10 or (p > total_pages - 3) or (p >= page - 2 and p <= page + 2) %}
+    <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+    {% endif %}{% endfor %}
+    <li class="page-item {% if page >= total_pages %}disabled{% endif %}"><a class="page-link" href="?page={{ page+1 }}">»</a></li>
+</ul></nav>
+{% endif %}
+{% endblock %}
